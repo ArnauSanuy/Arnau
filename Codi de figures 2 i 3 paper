@@ -12,25 +12,27 @@ delta = 0.0005
 f= 1
 
 # Valors diferents per poder calcular xm i theta
-Ac1 = np.linspace(0.94,1.4,51)
-Ac2 = np.linspace(0.96,1.3,51)
+Ac1 = np.linspace(0.94,1.4,400)
+Ac2 = np.linspace(0.96,1.3,400)
 e = 1
 B = 1
 c = 3e10
 me = 510998.95/(c**2)
-vb = ((e*B)/(2*math.pi*me*c))
+electro = 4.8032*10**(-10)
+massa_electro = 9.1094*10**(-28)
+vb = (electro*B)/(2*math.pi*massa_electro*c)
 #print(vb)
 #k = 8.617333262*10**(-5)
-kTe = np.linspace(50000, 1000000, 51)
-k = 1.380649
-theta = kTe/(me*c**2)
+kTe = np.linspace(50000, 1000000, 400)
+k = 1.380649*10**(-16)
+theta = kTe/(massa_electro*c**2)
 #print(theta)
-v = np.logspace(12,21,51)
+v = np.logspace(12,21,400)
 logv = []
-xm = ((2*v)/(3*vb*theta**2))
-#print(xm)
+xm_antiga = ((2*v)/(3*vb*theta**2))
+#print(xm_antiga)
 
-for i in range(51):
+for i in range(400):
     info = math.log10(v[i])
     logv.append(info)
 
@@ -39,81 +41,126 @@ for i in range(51):
 rmin = 3
 rmax = 1000
 m = [10, 1e5, 1e7, 1e9]
-mp1 = np.linspace(9*10**(-5), 1*10**(-7),51)
+mp1 = np.linspace(9*10**(-5), 1*10**(-7),400)
+pensar = np.logspace(math.log10(9*10**(-5)),-7,400)
+#print(pensar)
 #print(mp1)
-mp2 = np.linspace(3*10**(-4), 1*10**(-4),51)
-mp3 = np.linspace(1*10**(-4), 8*10**(-3),51)
+mp2 = np.linspace(3*10**(-4), 1*10**(-4),400)
+pensar2 = np.logspace(math.log10(3*10**(-4)),-4,400)
+#print(pensar2)
+mp3 = np.linspace(1*10**(-4), 8*10**(-3),400)
+pensar3 = np.logspace(-4,math.log10(8*10**(-3)),400)
+#print(pensar3)
 tau1 = (23.87*mp1)*(alpha/0.3)**(-1)*(c1/0.5)**(-1)*(rmin/3)**(-1/2)
 tau2 = (23.87*mp2)*((alpha/0.3)**(-1))*((c1/0.5)**(-1))*((rmin/3)**(-1/2))
 tau3 = (23.87*mp3)*(alpha/0.3)**(-1)*(c1/0.5)**(-1)*(rmin/3)**(-1/2)
-alphac1 = np.linspace(1.01,10,51)
-alphac2 = np.linspace(0.50,1,51)
-alphac3 = np.linspace(1.01,10,51)
-mp = np.linspace(0.01,1*10**(-8),51)
+alphac1 = np.linspace(1.01,10,400)
+alphac2 = np.linspace(0.50,1,400)
+alphac3 = np.linspace(1.01,10,400)
+mp = np.logspace(-2,-8,400)
 #print(mp)
 
-g = ((2/math.pi)**(1/2))*(1/theta**(1/2))*(2+2*theta+1/theta)
+# g = ((2/math.pi)**(1/2))*(1/theta**(1/2))*(2+2*theta+1/theta)
 
-F1 = []
-F2 = []
-
-
-for i in range(0,25):
-    cas = 4*((2*theta[i]/math.pi**3)**(1/2))*(1+1.781*theta[i]**(1.34))+1.73*(theta[i]**(3/2))*(1+1.1*theta[i]+(theta[i]**2)-1.25*theta[i]**(5/2))
-    F1.append(cas)
-
-for i in range(25,51):
-    cas = (9*theta[i]/(2*math.pi))*(math.log(1.123*theta[i]+0.48)+1.5)+2.3*theta[i]*(math.log(1.123*theta[i])+1.28)
-    F2.append(cas)
+# F1 = []
+# F2 = []
 
 
-F = F1+F2
+# for i in range(0,25):
+#     cas = 4*((2*theta[i]/math.pi**3)**(1/2))*(1+1.781*theta[i]**(1.34))+1.73*(theta[i]**(3/2))*(1+1.1*theta[i]+(theta[i]**2)-1.25*theta[i]**(5/2))
+#     F1.append(cas)
 
-gamma = []
+# for i in range(25,51):
+#     cas = (9*theta[i]/(2*math.pi))*(math.log(1.123*theta[i]+0.48)+1.5)+2.3*theta[i]*(math.log(1.123*theta[i])+1.28)
+#     F2.append(cas)
 
-for i in range(51):
-    info = ((1.2e38*g[i]*c3*beta*mp1[i])/((alpha**2)*(c1**2)*rmin))+delta*(9.39e38)*(c3/rmin)*((1-beta)/f)-((4.78e34)*math.log(rmax/rmin)*F[i]*mp1[i])/((alpha**2)*(c1**2))
-    gamma.append(info)
+
+# F = F1+F2
+
+# gamma = []
+
+# for i in range(400):
+#     info = ((1.2e38*g[i]*c3*beta*mp1[i])/((alpha**2)*(c1**2)*rmin))+delta*(9.39e38)*(c3/rmin)*((1-beta)/f)-((4.78e34)*math.log(rmax/rmin)*F[i]*mp1[i])/((alpha**2)*(c1**2))
+#     gamma.append(info)
 
 #print(gamma)
 
 #--------------------------------
 
 alphac = []
-Qemes = []
-T = np.linspace(0.01,15,51)
-bona_theta = (1e9*k)/(me*c**2)
+nova_alphac = []
+Qemes1 = []
+Qemes2 = []
+Qemes3 = []
+Qemes4 = []
+massae = 9.1094*10**(-28)
+#T = np.linspace(0.01,15,51)
+T = np.linspace(0.01e9,15e9,400)
+#bona_theta = (1e9*k)/(me*c**2)
+bona_theta = (k)/(massae*(c**2))
+#print(bona_theta)
 calcul = bona_theta*T
-# print(calcul)
+xm = (2*v)/(3*vb*(calcul**2))
+#print(xm)
+#print(calcul)
 
 
-for i in range(51):
-    info = (-math.log(23.87*mp[i]))/(math.log(1+((4e9*k*T[i])/(me*c**2))+16*((1e9*k*T[i])/(me*c**2))**2))
+for i in range(400):
+    info = (-math.log(23.87*mp[i]))/(math.log(1+(4*calcul[i])+16*calcul[i]**2))
     alphac.append(info)
 
+for i in range(400):
+    cal = 1-alphac[i]
+    nova_alphac.append(cal)
+
+#print(nova_alphac)
+
+llista = []
+
+
 #print(alphac)
-g_Te = (((2*me*c**2)/(math.pi*1e9*k*T))**(1/2))*(2+(2e9*k*T)/(me*c**2)+(me*c**2)/(1e9*k*T))
+g_Te = ((2/(math.pi*calcul))**(1/2))*(2+2*calcul+1/calcul)
 
 #print(g_Te)
 
+# for i in range(51):
+#     prova = (math.log10(89.25*((xm[i]/1000)**(-3))*(T[i]**(-7))*g_Te[i]*((m[0]*mp[i])**(1/2))-1))/(math.log10((1.46e6*((m[0]/mp[i])**(1/2)))/(T[i]*xm[i])))
+#     llista.append(prova)
+
+# #u_menysalphac = (math.log10(89.25*((xm/1000)**(-3))*(T**(-7))*g*((m[0]*mp)**(1/2))-1))/(math.log10((1.46e6*((m[0]/mp)**(1/2)))/(T*xm)))
+
+# print(llista)
+
 
 #Aquí és on començen a apareixer les masses
-for i in range(51):
+for i in range(400):
     info = 1.2e38*g_Te[i]*(alpha**(-2))*(c1**(-2))*c3*beta*(mp[i]**(2))*(rmin**(-3))+delta*9.39e38*((1-beta)/f)*c3*m[0]*mp[i]*(rmin**(-1))
-    Qemes.append(info)
+    Qemes1.append(info)
 
-print(Qemes)
+for i in range(400):
+    info = 1.2e38*g_Te[i]*(alpha**(-2))*(c1**(-2))*c3*beta*(mp[i]**(2))*(rmin**(-3))+delta*9.39e38*((1-beta)/f)*c3*m[1]*mp[i]*(rmin**(-1))
+    Qemes2.append(info)
+
+for i in range(400):
+    info = 1.2e38*g_Te[i]*(alpha**(-2))*(c1**(-2))*c3*beta*(mp[i]**(2))*(rmin**(-3))+delta*9.39e38*((1-beta)/f)*c3*m[2]*mp[i]*(rmin**(-1))
+    Qemes3.append(info)
+
+for i in range(400):
+    info = 1.2e38*g_Te[i]*(alpha**(-2))*(c1**(-2))*c3*beta*(mp[i]**(2))*(rmin**(-3))+delta*9.39e38*((1-beta)/f)*c3*m[3]*mp[i]*(rmin**(-1))
+    Qemes4.append(info)
+
+#print(Qemes1)
 
 F_total = []
 
 
 #Per les Fs no hi ha masses, tot és en general
-for i in range(51):
+for i in range(400):
     if T[i] < 1/bona_theta:
-        cas1 = 4*((2*T[i]*bona_theta/math.pi**3)**(1/2))*(1+1.781*(T[i]*bona_theta)**(1.34))+1.73*((T[i]*bona_theta)**(3/2))*(1+1.1*(T[i]*bona_theta)+((T[i]*bona_theta)**2)-1.25*(T[i]*bona_theta)**(5/2))
+        cas1 = 4*((2*calcul[i]/math.pi**3)**(1/2))*(1+1.781*(calcul[i])**(1.34))+1.73*((calcul[i])**(3/2))*(1+1.1*(calcul[i])+((calcul[i])**2)-1.25*(calcul[i])**(5/2))
         F_total.append(cas1)
     if T[i] > 1/bona_theta:
-        cas2 = (9*T[i]*bona_theta/(2*math.pi))*(math.log(1.123*T[i]*bona_theta+0.48)+1.5)+2.3*T[i]*bona_theta*(math.log(1.123*T[i]*bona_theta)+1.28)
+        cas2 = (9*calcul[i]/(2*math.pi))*(math.log(1.123*calcul[i]+0.48)+1.5)+2.3*calcul[i]*(math.log(1.123*calcul[i])+1.28)
         F_total.append(cas2)
 
 
@@ -136,38 +183,161 @@ for i in range(51):
 llista_patata = []
 
 #Aquí tornen a apareixer les masses
-vp = 1.6898e14*(((1-beta)*c3*mp)/(alpha*c1*m[0]))**(1/2)*xm*(rmin**(-5/4))*T
+vp1 = 1.6898**(-4)*(((1-beta)*c3*mp)/(alpha*c1*m[0]))**(1/2)*xm*(rmin**(-5/4))*T
+vp2 = 1.6898**(-4)*(((1-beta)*c3*mp)/(alpha*c1*m[1]))**(1/2)*xm*(rmin**(-5/4))*T
+vp3 = 1.6898**(-4)*(((1-beta)*c3*mp)/(alpha*c1*m[2]))**(1/2)*xm*(rmin**(-5/4))*T
+vp4 = 1.6898**(-4)*(((1-beta)*c3*mp)/(alpha*c1*m[3]))**(1/2)*xm*(rmin**(-5/4))*T
+
+
 #print(vp)
 
 
-for i in range(51):
-    patata = 4.78e34*(alpha**(-2))*(c1**(-2))*math.log(rmax/rmin)*F_total[i]*m[0]*(mp[i]**2)+5.3e35*((xm[i]/1000)**3)*(T[i]**7)*(m[0]**(1/2))*(mp[i]**(3/2))*(1+(1/(0.71*(1-alphac[i])))*((((6.2e19*T[i])/vp[i])**(1-alphac[i]))-1))
-    llista_patata.append(patata)
+# for i in range(51):
+#     patata = 4.78e34*(alpha**(-2))*(c1**(-2))*math.log(rmax/rmin)*F_total[i]*m[0]*(mp[i]**2)+5.3e35*((xm[i]/1000)**3)*(T[i]**7)*(m[0]**(1/2))*(mp[i]**(3/2))*(1+(1/(0.71*(1-alphac[i])))*((((6.2e19*T[i])/vp[i])**(1-alphac[i]))-1))
+#     llista_patata.append(patata)
 
 #print(llista_patata)
 #igualtat = 4.78e34*(alpha**(-2))*(c1**(-2))*math.log(rmax/rmin)*F_total*m[0]*(mp**2)+5.3e35*((xm/1000)**3)*(T**7)*(m[0]**(1/2))*(mp**(3/2))*(1+(1/(0.71*(1-alphac)))*((((6.2e19*T)/vp)**(1-alphac))-1))
 
 
-llista_T = []
+llista_T1 = []
+llista_T2 = []
+llista_T3 = []
+llista_T4 = []
 llista_mp = []
 
 igualtat = []
 
-for i in range(51):
-    cas = 4.78e34*(alpha**(-2))*(c1**(-2))*math.log(rmax/rmin)*F_total[i]*m[0]*(mp[i]**2)+5.3e35*((xm[i]/1000)**3)*(T[i]**7)*(m[0]**(1/2))*(mp[i]**(3/2))*(1+(1/(0.71*(1-alphac[i])))*((((6.2e19*T[i])/vp[i])**(1-alphac[i]))-1))
+for i in range(400):
+    cas = 4.78e34*(alpha**(-2))*(c1**(-2))*math.log(rmax/rmin)*F_total[i]*m[0]*(mp[i]**2)+5.3e35*((xm[i]/1000)**3)*((T[i]**7)/1e63)*(m[0]**(1/2))*(mp[i]**(3/2))*(1+(1/(0.71*(1-alphac[i])))*((((6.2e10*T[i])/vp1[i])**(1-alphac[i]))-1))
     igualtat.append(cas)
 
-print(igualtat)
+#print(igualtat)
 
-for i in range(51):
-    if 4.78e34*(alpha**(-2))*(c1**(-2))*math.log(rmax/rmin)*F_total[i]*m[0]*(mp[i]**2)+5.3e35*((xm[i]/1000)**3)*(T[i]**7)*(m[0]**(1/2))*(mp[i]**(3/2))*(1+(1/(0.71*(1-alphac[i])))*((((6.2e19*T[i])/vp[i])**(1-alphac[i]))-1)) == Qemes[i]:
-        llista_T.append(T[i])
+for i in range(400):
+    if 4.78e34*(alpha**(-2))*(c1**(-2))*math.log(rmax/rmin)*F_total[i]*m[0]*(mp[i]**2)+5.3e35*((xm[i]/1000)**3)*((T[i]**7)/1e63)*(m[0]**(1/2))*(mp[i]**(3/2))*(1+(1/(0.71*(1-alphac[i])))*((((6.2e10*T[i])/vp1[i])**(1-alphac[i]))-1)) == Qemes1[i]:
+        llista_T1.append(T[i])
 
-print(llista_T)
+for i in range(400):
+    if 4.78e34*(alpha**(-2))*(c1**(-2))*math.log(rmax/rmin)*F_total[i]*m[1]*(mp[i]**2)+5.3e35*((xm[i]/1000)**3)*((T[i]**7)/1e63)*(m[1]**(1/2))*(mp[i]**(3/2))*(1+(1/(0.71*(1-alphac[i])))*((((6.2e10*T[i])/vp2[i])**(1-alphac[i]))-1)) == Qemes2[i]:
+        llista_T2.append(T[i])
 
-# plt.plot(logMp3, nova_alpha3)
-# plt.xlabel('$\nu$ Hz')
-# plt.ylabel('$\dfrac{Te}{10^9}$')
-# plt.title('Relacio temperatures')
+for i in range(400):
+    if 4.78e34*(alpha**(-2))*(c1**(-2))*math.log(rmax/rmin)*F_total[i]*m[2]*(mp[i]**2)+5.3e35*((xm[i]/1000)**3)*((T[i]**7)/1e63)*(m[2]**(1/2))*(mp[i]**(3/2))*(1+(1/(0.71*(1-alphac[i])))*((((6.2e10*T[i])/vp3[i])**(1-alphac[i]))-1)) == Qemes3[i]:
+        llista_T3.append(T[i])
+
+for i in range(400):
+    if 4.78e34*(alpha**(-2))*(c1**(-2))*math.log(rmax/rmin)*F_total[i]*m[3]*(mp[i]**2)+5.3e35*((xm[i]/1000)**3)*((T[i]**7)/1e63)*(m[3]**(1/2))*(mp[i]**(3/2))*(1+(1/(0.71*(1-alphac[i])))*((((6.2e10*T[i])/vp4[i])**(1-alphac[i]))-1)) == Qemes4[i]:
+        llista_T4.append(T[i])
+
+print(llista_T1)
+print(llista_T2)
+print(llista_T3)
+print(llista_T4)
+
+# plt.plot(mp, llista_T1)
+# plt.plot(mp,xm)
+# plt.xlabel('log($\dot{m}$)')
+# plt.ylabel('(Te/10**9) K')
+# plt.title('Temperatures equilibri massa 1')
 # plt.legend()
 # plt.show()
+
+# plt.plot(mp, llista_T2)
+# plt.plot(mp,xm)
+# plt.xlabel('log($\dot{m}$)')
+# plt.ylabel('(Te/10**9) K')
+# plt.title('Temperatures equilibri massa 2')
+# plt.legend()
+# plt.show()
+
+# plt.plot(mp, llista_T3)
+# plt.plot(mp,xm)
+# plt.xlabel('log($\dot{m}$)')
+# plt.ylabel('(Te/10**9) K')
+# plt.title('Temperatures equilibri massa 3')
+# plt.legend()
+# plt.show()
+
+
+# plt.plot(mp, llista_T4)
+# plt.plot(mp,xm)
+# plt.xlabel('log($\dot{m}$)')
+# plt.ylabel('(Te/10**9) K')
+# plt.title('Temperatures equilibri massa 4')
+# plt.legend()
+# plt.show()
+
+
+# slope1 = []
+# slope2 = []
+# slope3 = []
+# slope4 = []
+
+# for i in range(400):
+#     pendent1 = 0.03381*(((v[i]**7)*(m[0]**6)*(mp[i]**4)*(T[i]**21)*(xm[i]**8)*(((1-beta)*c3/(alpha*c1))**4))**(1/5))
+#     slope1.append(pendent1)
+
+# for i in range(400):
+#     pendent2 = 0.03381*(((v[i]**7)*(m[1]**6)*(mp[i]**4)*(T[i]**21)*(xm[i]**8)*(((1-beta)*c3/(alpha*c1))**4))**(1/5))
+#     slope2.append(pendent2)
+
+# for i in range(400):
+#     pendent3 = 0.03381*(((v[i]**7)*(m[2]**6)*(mp[i]**4)*(T[i]**21)*(xm[i]**8)*(((1-beta)*c3/(alpha*c1))**4))**(1/5))
+#     slope3.append(pendent3)
+
+# for i in range(400):
+#     pendent4 = 0.03381*(((v[i]**7)*(m[3]**6)*(mp[i]**4)*(T[i]**21)*(xm[i]**8)*(((1-beta)*c3/(alpha*c1))**4))**(1/5))
+#     slope4.append(pendent4)
+
+#slope = 0.03381*(((v**7)*(m**6)*(mp**4)*(T**21)*(1e189)*(xm**8)*(((1-beta)*c3/(alpha*c1))**4))**(1/5))
+
+logmp = []
+
+for i in range(400):
+    logar = math.log10(mp[i])
+    logmp.append(logar)
+
+#print(logmp)
+
+u_menysalphac1 = []
+u_menysalphac2 = []
+u_menysalphac3 = []
+u_menysalphac4 = []
+
+#idea = (math.log10(89.25e63*((xm[0]/1000)**(-3))*(T[0]**(-7))*g_Te[0]*((10*mp[0])**(1/2))-1))/(math.log10((1.46e15*((10/mp[0])**(1/2)))/(T[0]*xm[0])))
+#print(idea)
+
+for i in range(400):
+    u_cas1 = (math.log10(89.25e63*((xm[i]/1000)**(-3))*(T[i]**(-7))*g_Te[i]*((m[0]*mp[i])**(1/2))-1))/(math.log10((1.46e15*((m[0]/mp[i])**(1/2)))/(T[i]*xm[i])))
+    u_menysalphac1.append(u_cas1)
+
+
+for i in range(400):
+    u_cas2 = (math.log10(89.25e63*((xm[i]/1000)**(-3))*(T[i]**(-7))*g_Te[i]*((m[1]*mp[i])**(1/2))-1))/(math.log10((1.46e15*((m[1]/mp[i])**(1/2)))/(T[i]*xm[i])))
+    u_menysalphac2.append(u_cas2)
+
+for i in range(400):
+    u_cas3 = (math.log10(89.25e63*((xm[i]/1000)**(-3))*(T[i]**(-7))*g_Te[i]*((m[2]*mp[i])**(1/2))-1))/(math.log10((1.46e15*((m[2]/mp[i])**(1/2)))/(T[i]*xm[i])))
+    u_menysalphac3.append(u_cas3)
+
+for i in range(400):
+    u_cas4 = (math.log10(89.25e63*((xm[i]/1000)**(-3))*(T[i]**(-7))*g_Te[i]*((m[3]*mp[i])**(1/2))-1))/(math.log10((1.46e15*((m[3]/mp[i])**(1/2)))/(T[i]*xm[i])))
+    u_menysalphac4.append(u_cas4)
+
+#u_menysalphac = (math.log10(89.25*((xm/1000)**(-3))*(T**(-7))*g*((m*mp)**(1/2))-1))/(math.log10((1.46e6*((m/mp)**(1/2)))/(T*xm))))
+
+print(u_menysalphac1)
+print(u_menysalphac2)
+print(u_menysalphac3)
+print(u_menysalphac4)
+
+plt.plot(logmp, u_menysalphac1)
+plt.plot(logmp, u_menysalphac2)
+plt.plot(logmp, u_menysalphac3)
+plt.plot(logmp, u_menysalphac4)
+plt.xlabel('log($\dot{m}$)')
+plt.ylabel('(Te/10**9) K')
+plt.title('Temperatures equilibri massa 4')
+plt.legend()
+plt.show()
