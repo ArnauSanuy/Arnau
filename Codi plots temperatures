@@ -121,6 +121,8 @@ for j in m:
         cas = (1.1/Ac1[i])*((xm[i]/300)**(-3/7))*(((1-beta)/0.5)**(-1/14))*(j**(1/14))*(mp1[i]**(-1/14))
         Te.append(cas)
     
+# Ara comencem a escriure les temperatures pel primer cas, on els noms de les seguents llistes es refereixen a les temperatures
+# A continuacio es ploteja les temperatures segons cada massa en un sol plot
 
 massa1 = []
 massa2 = []
@@ -157,7 +159,7 @@ plt.title('Relacio temperatures')
 plt.legend()
 plt.show()
 
-
+# Aquí només tenim temperatura per un cas, ja que no depen de la massa, per tant es mes facil
 T2 = []
 
 for i in range(51):
@@ -172,6 +174,8 @@ plt.ylabel('Te')
 plt.title('Relacio temperatures')
 plt.show()
 
+# Aqui torna a ser com al principi, ja que tenim la temperatura segons cada massa
+# Torna a ser un plot per les quatre masses
 
 T3_masa1 = []
 T3_masa2 = []
