@@ -11,17 +11,6 @@ c3 = 0.3
 delta = 0.0005
 f= 1
 
-
-# Exemple de definicio
-def list_numbers_with_intervals(start, end, interval):
-    return list(range(start, end + 1, interval))
-
-# Ejemplo de uso
-start = 0.95
-end = 1.4
-interval = 0.01
-
-
 # Valors diferents per poder calcular xm i theta
 Ac1 = np.linspace(0.94,1.4,51)
 Ac2 = np.linspace(0.96,1.3,51)
@@ -33,28 +22,20 @@ me = 510998.95/(c**2)
 electro = 4.8032*10**(-10)
 massa_electro = 9.1094*10**(-28)
 vb = (electro*B)/(2*math.pi*massa_electro*c)
-#print(vb)
 #k = 8.617333262*10**(-5)
 kTe = np.linspace(50000, 1000000, 51)
 theta = kTe/(me*c**2)
-#print(theta)
 v = np.logspace(12,21,51)
-logv = []
-xm = ((2*v)/(3*vb*theta**2))
-print(xm)
-
-for i in range(51):
-    info = math.log10(v[i])
-    logv.append(info)
+logv = np.linspace(12,21,51)
 
 
 # 3 casos diferents segons quin alphac tenim o derivada de massa
 rmin = 3
 rmax = 1000
 m = [10, 1e5, 1e7, 1e9]
-mp1 = np.linspace(9*10**(-5), 1*10**(-7),51)
-mp2 = np.linspace(3*10**(-4), 1*10**(-4),51)
-mp3 = np.linspace(1*10**(-4), 8*10**(-3),51)
+mp1 = np.logspace(-5+math.log10(9), -7,51)
+mp2 = np.logspace(-4+math.log10(3), -4,51)
+mp3 = np.logspace(-4, -3 + math.log10(8),51)
 tau1 = (23.87*mp1)*(alpha/0.3)**(-1)*(c1/0.5)**(-1)*(rmin/3)**(-1/2)
 tau2 = (23.87*mp2)*((alpha/0.3)**(-1))*((c1/0.5)**(-1))*((rmin/3)**(-1/2))
 tau3 = (23.87*mp3)*(alpha/0.3)**(-1)*(c1/0.5)**(-1)*(rmin/3)**(-1/2)
@@ -62,45 +43,42 @@ alphac1 = np.linspace(1.01,10,51)
 alphac2 = np.linspace(0.50,1,51)
 alphac3 = np.linspace(1.01,10,51)
 
+logxm1 = []
+logxm2 = []
+logxm3 = []
+xm_nova1 = []
+xm_nova2 = []
+xm_nova3 = []
 
-logxm = []
-xm_nova = []
 
 for i in range(51):
     cas1 = 3.6+0.25*math.log10(mp1[i])
-    logxm.append(cas1)
+    logxm1.append(cas1)
+for i in range(51):
+    cas1 = 3.6+0.25*math.log10(mp2[i])
+    logxm2.append(cas1)
+for i in range(51):
+    cas1 = 3.6+0.25*math.log10(mp3[i])
+    logxm3.append(cas1)
 
 for i in range(51):
-    llista = 10**(logxm[i])
-    xm_nova.append(llista)
-
-#print(logxm)
-print(xm_nova)
-
-nova_alpha1 = 1-alphac1
-nova_alpha2 = 1-alphac2
-nova_alpha3 = 1-alphac3
-#print(nova_alpha1)
-
-logMp1 = []
-
+    llista = 10**(logxm1[i])
+    xm_nova1.append(llista)
 for i in range(51):
-    masa = math.log10(mp1[i])
-    logMp1.append(masa)
-
-logMp2 = []
-
+    llista = 10**(logxm2[i])
+    xm_nova2.append(llista)
 for i in range(51):
-    masa = math.log10(mp2[i])
-    logMp2.append(masa)
+    llista = 10**(logxm3[i])
+    xm_nova3.append(llista)
 
-logMp3 = []
+# def calc_log_x_m(log_m_dot):
+#     return 3.6+(1/4)*log_m_dot
 
-for i in range(51):
-    masa = math.log10(mp3[i])
-    logMp3.append(masa)
-
-#print(logMp)
+# log_m_dot = np.linspace(0,-8,51)
+# #print(log_m_dot)
+# log_x_m = calc_log_x_m(log_m_dot)
+# x_m = 10**log_x_m
+# print(x_m)
 
 
 # Son les tres temperatures
@@ -118,41 +96,40 @@ Te = []
 
 for j in m:
     for i in range(51):
-        cas = (1.1/Ac1[i])*((xm[i]/300)**(-3/7))*(((1-beta)/0.5)**(-1/14))*(j**(1/14))*(mp1[i]**(-1/14))
+        cas = (1.1/Ac1[i])*((xm_nova1[i]/300)**(-3/7))*(((1-beta)/0.5)**(-1/14))*(j**(1/14))*(mp1[i]**(-1/14))
         Te.append(cas)
     
 # Ara comencem a escriure les temperatures pel primer cas, on els noms de les seguents llistes es refereixen a les temperatures
 # A continuacio es ploteja les temperatures segons cada massa en un sol plot
-
 massa1 = []
 massa2 = []
 massa3 = []
 massa4 = []
 
 for i in range(51):
-    cas = ((1.1e9)/Ac1[i])*((xm[i]/300)**(-3/7))*(m[0]**(1/14))*(mp1[i]**(-1/14))
+    cas = ((1.1e9)/Ac1[i])*((xm_nova1[i]/300)**(-3/7))*(m[0]**(1/14))*(mp1[i]**(-1/14))
     massa1.append(cas)
 
 
 for i in range(51):
-    cas = ((1.1e9)/Ac1[i])*((xm[i]/300)**(-3/7))*(m[1]**(1/14))*(mp1[i]**(-1/14))
+    cas = ((1.1e9)/Ac1[i])*((xm_nova1[i]/300)**(-3/7))*(m[1]**(1/14))*(mp1[i]**(-1/14))
     massa2.append(cas)
 
 
 for i in range(51):
-    cas = ((1.1e9)/Ac1[i])*((xm[i]/300)**(-3/7))*(m[2]**(1/14))*(mp1[i]**(-1/14))
+    cas = ((1.1e9)/Ac1[i])*((xm_nova1[i]/300)**(-3/7))*(m[2]**(1/14))*(mp1[i]**(-1/14))
     massa3.append(cas)
 
 
 for i in range(51):
-    cas = ((1.1e9)/Ac1[i])*((xm[i]/300)**(-3/7))*(m[3]**(1/14))*(mp1[i]**(-1/14))
+    cas = ((1.1e9)/Ac1[i])*((xm_nova1[i]/300)**(-3/7))*(m[3]**(1/14))*(mp1[i]**(-1/14))
     massa4.append(cas)
 
 
-plt.plot(logv,massa1, label="m=10")
-plt.plot(logv,massa2, label="$m=10^5$")
-plt.plot(logv,massa3, label="$m=10^7$")
-plt.plot(logv,massa4, label="$m=10^9$")
+plt.semilogy(logv,massa1, label="m=10")
+plt.semilogy(logv,massa2, label="$m=10^5$")
+plt.semilogy(logv,massa3, label="$m=10^7$")
+plt.semilogy(logv,massa4, label="$m=10^9$")
 plt.xlabel(r'$\nu$ Hz')
 plt.ylabel('Te')
 plt.title('Relacio temperatures')
@@ -160,6 +137,7 @@ plt.legend()
 plt.show()
 
 # Aquí només tenim temperatura per un cas, ja que no depen de la massa, per tant es mes facil
+
 T2 = []
 
 for i in range(51):
@@ -168,15 +146,14 @@ for i in range(51):
 
 #print(T2)
 
-plt.plot(logv,T2)
-plt.xlabel('$\nu$ Hz')
+plt.semilogy(logv,T2)
+plt.xlabel(r'$\nu$ Hz')
 plt.ylabel('Te')
 plt.title('Relacio temperatures')
 plt.show()
 
 # Aqui torna a ser com al principi, ja que tenim la temperatura segons cada massa
 # Torna a ser un plot per les quatre masses
-
 T3_masa1 = []
 T3_masa2 = []
 T3_masa3 = []
@@ -184,27 +161,27 @@ T3_masa4 = []
 
 
 for i in range(51):
-    cas3 = ((2.7e9)/Ac2[i])*((xm[i]/1000)**(-2/5))*(((1-beta)/0.5)**(-1/5))*(m[0]**(3/50))*(mp3[i]**(3/50))
+    cas3 = ((2.7e9)/Ac2[i])*((xm_nova3[i]/1000)**(-2/5))*(((1-beta)/0.5)**(-1/5))*(m[0]**(3/50))*(mp3[i]**(3/50))
     T3_masa1.append(cas3)
 
 for i in range(51):
-    cas3 = ((2.7e9)/Ac2[i])*((xm[i]/1000)**(-2/5))*(((1-beta)/0.5)**(-1/5))*(m[1]**(3/50))*(mp3[i]**(3/50))
+    cas3 = ((2.7e9)/Ac2[i])*((xm_nova3[i]/1000)**(-2/5))*(((1-beta)/0.5)**(-1/5))*(m[1]**(3/50))*(mp3[i]**(3/50))
     T3_masa2.append(cas3)
 
 for i in range(51):
-    cas3 = ((2.7e9)/Ac2[i])*((xm[i]/1000)**(-2/5))*(((1-beta)/0.5)**(-1/5))*(m[2]**(3/50))*(mp3[i]**(3/50))
+    cas3 = ((2.7e9)/Ac2[i])*((xm_nova3[i]/1000)**(-2/5))*(((1-beta)/0.5)**(-1/5))*(m[2]**(3/50))*(mp3[i]**(3/50))
     T3_masa3.append(cas3)
 
 for i in range(51):
-    cas3 = ((2.7e9)/Ac2[i])*((xm[i]/1000)**(-2/5))*(((1-beta)/0.5)**(-1/5))*(m[3]**(3/50))*(mp3[i]**(3/50))
+    cas3 = ((2.7e9)/Ac2[i])*((xm_nova3[i]/1000)**(-2/5))*(((1-beta)/0.5)**(-1/5))*(m[3]**(3/50))*(mp3[i]**(3/50))
     T3_masa4.append(cas3)
 
 
-plt.plot(logv,T3_masa1, label="m=10")
-plt.plot(logv,T3_masa2, label="$m=10^5$")
-plt.plot(logv,T3_masa3, label="$m=10^7$")
-plt.plot(logv,T3_masa4, label="$m=10^9$")
-plt.xlabel('$\nu$ Hz')
+plt.semilogy(logv,T3_masa1, label="m=10")
+plt.semilogy(logv,T3_masa2, label="$m=10^5$")
+plt.semilogy(logv,T3_masa3, label="$m=10^7$")
+plt.semilogy(logv,T3_masa4, label="$m=10^9$")
+plt.xlabel(r'$\nu$ Hz')
 plt.ylabel('Te')
 plt.title('Relacio temperatures')
 plt.legend()
@@ -219,7 +196,6 @@ plt.show()
 # plt.title('Relacio temperatures')
 # plt.legend()
 # plt.show()
-
 
 # print('_______________________________________________________')
 
