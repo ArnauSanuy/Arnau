@@ -125,13 +125,16 @@ for i in range(51):
     cas = ((1.1e9)/Ac1[i])*((xm_nova1[i]/300)**(-3/7))*(m[3]**(1/14))*(mp1[i]**(-1/14))
     massa4.append(cas)
 
+print(mp1)
+print(massa1)
 
-plt.semilogy(logv,massa1, label="m=10")
-plt.semilogy(logv,massa2, label="$m=10^5$")
-plt.semilogy(logv,massa3, label="$m=10^7$")
-plt.semilogy(logv,massa4, label="$m=10^9$")
-plt.xlabel(r'$\nu$ Hz')
-plt.ylabel('Te')
+
+plt.plot(np.log10(mp1),massa1, label="m=10")
+# plt.plot(np.log10(mp1),massa2, label="$m=10^5$")
+# plt.plot(np.log10(mp1),massa3, label="$m=10^7$")
+# plt.plot(np.log10(mp1),massa4, label="$m=10^9$")
+plt.xlabel(r'log($\nu$) log(Hz)')
+plt.ylabel('Te (K)')
 plt.title('Relacio temperatures')
 plt.legend()
 plt.show()
@@ -147,8 +150,8 @@ for i in range(51):
 #print(T2)
 
 plt.semilogy(logv,T2)
-plt.xlabel(r'$\nu$ Hz')
-plt.ylabel('Te')
+plt.xlabel(r'log($\nu$) log(Hz)')
+plt.ylabel('Te (K)')
 plt.title('Relacio temperatures')
 plt.show()
 
@@ -181,8 +184,8 @@ plt.semilogy(logv,T3_masa1, label="m=10")
 plt.semilogy(logv,T3_masa2, label="$m=10^5$")
 plt.semilogy(logv,T3_masa3, label="$m=10^7$")
 plt.semilogy(logv,T3_masa4, label="$m=10^9$")
-plt.xlabel(r'$\nu$ Hz')
-plt.ylabel('Te')
+plt.xlabel(r'log($\nu$) log(Hz)')
+plt.ylabel('Te (K)')
 plt.title('Relacio temperatures')
 plt.legend()
 plt.show()
@@ -196,6 +199,7 @@ plt.show()
 # plt.title('Relacio temperatures')
 # plt.legend()
 # plt.show()
+
 
 # print('_______________________________________________________')
 
