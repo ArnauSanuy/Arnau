@@ -418,7 +418,7 @@ for _m_dot in m_dot_values:
     P_compton_values = P_compton(P_synch_values, alpha_c, theta_e)
     P_bremms_values = P_bremms(theta_e)
     P_total_values = P_total(theta_e, _x_m, m, _m_dot)
-    equilibrium = np.abs(Q_e_plus_values - P_synch_values - P_bremms_values)
+    equilibrium = np.abs(Q_e_plus_values - P_total_values)
     equilibrium_idx = np.argmin(equilibrium)
     print(f"-> equilibrium temperature: {T_e[equilibrium_idx]:.2e}")
     T_eq_values.append(T_e[equilibrium_idx].value)
