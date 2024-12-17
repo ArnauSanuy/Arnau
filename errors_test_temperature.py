@@ -45,101 +45,108 @@ def g(theta_e):
     factor_3 = np.exp(-(1 / theta_e))
     return (factor_1 * factor_2 * factor_3).value
 
+
 def alpha_c(
     theta_e,
-    m_dot, 
-    alpha = ALPHA, 
-    c_1 = C_1, 
-    r_min = R_MIN, 
+    m_dot,
+    alpha=ALPHA,
+    c_1=C_1,
+    r_min=R_MIN,
 ):
     """Eq. (34) Mahadevan 1994."""
-    
-    tau_es = (23.87*m_dot)*np.power(alpha / 0.3, -1)*np.power(c_1 / 0.5, -1)*np.power(r_min / 3, -1 / 2)
-    A = 1 + 4*theta_e + 16*np.power(theta_e, 2)
-    
-    result = (-1)*np.log(tau_es)/np.log(A)
-    
+
+    tau_es = (
+        (23.87 * m_dot)
+        * np.power(alpha / 0.3, -1)
+        * np.power(c_1 / 0.5, -1)
+        * np.power(r_min / 3, -1 / 2)
+    )
+    A = 1 + 4 * theta_e + 16 * np.power(theta_e, 2)
+
+    result = (-1) * np.log(tau_es) / np.log(A)
+
     return result
+
 
 def vp(
     x_m,
-    m_dot, 
-    m, 
+    m_dot,
+    m,
     theta_e,
-    alpha = ALPHA,
-    beta = BETA,
-    c_1 = C_1,
-    c_3 = C_3,
-    r_min = R_MIN,
+    alpha=ALPHA,
+    beta=BETA,
+    c_1=C_1,
+    c_3=C_3,
+    r_min=R_MIN,
 ):
     T_e = T_from_theta(theta_e).value
-    
+
     calc = (
-    1.6898e-4
-    * np.power(((1-beta)*c_3*m_dot)/(alpha*c_1*m), 1/2)
-    * np.power(T_e, 2)
-    * np.power(r_min, -5/4)
-    * x_m
+        1.6898e-4
+        * np.power(((1 - beta) * c_3 * m_dot) / (alpha * c_1 * m), 1 / 2)
+        * np.power(T_e, 2)
+        * np.power(r_min, -5 / 4)
+        * x_m
     )
     return calc * u.Unit("s-1")
+
 
 def F_theta(theta_e):
     for i in range(len(theta_e)):
         if theta_e[i] < 1:
-            case_1 = (4*((2*theta_e[i]/math.pi**3)**(1/2))*(1+1.781*(theta_e[i])**(1.34))
-                      + 1.73*((theta_e[i])**(3/2))*(1+1.1*(theta_e[i])+((theta_e[i])**2)-1.25*(theta_e[i])**(5/2)))
+            case_1 = 4 * ((2 * theta_e[i] / math.pi**3) ** (1 / 2)) * (
+                1 + 1.781 * (theta_e[i]) ** (1.34)
+            ) + 1.73 * ((theta_e[i]) ** (3 / 2)) * (
+                1
+                + 1.1 * (theta_e[i])
+                + ((theta_e[i]) ** 2)
+                - 1.25 * (theta_e[i]) ** (5 / 2)
+            )
             F_total.append(case_1)
         if theta_e[i] > 1:
-            case_2 = ((9*theta_e[i]/(2*math.pi))*(math.log(1.123*theta_e[i]+0.48)+1.5)
-                      + 2.3*theta_e[i]*(math.log(1.123*theta_e[i])+1.28))
+            case_2 = (9 * theta_e[i] / (2 * math.pi)) * (
+                math.log(1.123 * theta_e[i] + 0.48) + 1.5
+            ) + 2.3 * theta_e[i] * (math.log(1.123 * theta_e[i]) + 1.28)
             F_total.append(case_2)
-    
-    return F_total*u.Unit("")
-    
+
+    return F_total * u.Unit("")
+
 
 def one_minus_alpha_c(
-    theta_e,
-    x_m,
-    m,
-    m_dot,
-    alpha = ALPHA, 
-    beta = BETA,
-    c_1 = C_1,
-    c_3 = C_3, 
-    r_min = R_MIN
+    theta_e, x_m, m, m_dot, alpha=ALPHA, beta=BETA, c_1=C_1, c_3=C_3, r_min=R_MIN
 ):
-    
     T_e = T_from_theta(theta_e).value
-    
+
     factor_1 = (
-    3.57e2
-    * np.power(x_m/1000, -3)
-    * np.power(alpha/0.3, -1/2)
-    * (beta/0.5)
-    * np.power((1-beta)/0.5, -3/2)
-    * np.power(c_1/0.5, -1/2)
-    * np.power(c_3/0.3, -1/2)
-    * np.power(r_min/3, 3/4)
-    * np.power(T_e/1e9, -7)
-    * g
-    * np.power(m, 1/2)
-    * np.power(m_dot, 1/2)
+        3.57e2
+        * np.power(x_m / 1000, -3)
+        * np.power(alpha / 0.3, -1 / 2)
+        * (beta / 0.5)
+        * np.power((1 - beta) / 0.5, -3 / 2)
+        * np.power(c_1 / 0.5, -1 / 2)
+        * np.power(c_3 / 0.3, -1 / 2)
+        * np.power(r_min / 3, 3 / 4)
+        * np.power(T_e / 1e9, -7)
+        * g
+        * np.power(m, 1 / 2)
+        * np.power(m_dot, 1 / 2)
     )
-    
+
     C_F = (
-    1.46e3
-    * np.power(x_m/1000, -1)
-    * np.power(alpha/0.3, 1/2)
-    * np.power((1-beta)/0.5, -1/2)
-    * np.power(c_1/0.5, 1/2)
-    * np.power(c_3/0.3, -1/2)
-    * np.power(r_min/3, 5/4)
-    * np.power(T_e/1e9, -1)
-    * np.power(m, 1/2)
-    * np.power(m_dot, -1/2)
+        1.46e3
+        * np.power(x_m / 1000, -1)
+        * np.power(alpha / 0.3, 1 / 2)
+        * np.power((1 - beta) / 0.5, -1 / 2)
+        * np.power(c_1 / 0.5, 1 / 2)
+        * np.power(c_3 / 0.3, -1 / 2)
+        * np.power(r_min / 3, 5 / 4)
+        * np.power(T_e / 1e9, -1)
+        * np.power(m, 1 / 2)
+        * np.power(m_dot, -1 / 2)
     )
-    
-    return np.log10(factor_1/4 -1)/np.log10(C_F)
+
+    return np.log10(factor_1 / 4 - 1) / np.log10(C_F)
+
 
 def Q_e_plus(
     theta_e,
@@ -198,49 +205,51 @@ def P_synch(
 
 
 def P_compton(
-        P_synch, 
-        alpha_c, 
-        theta_e,
+    P_synch,
+    alpha_c,
+    theta_e,
 ):
-    
     T_e = T_from_theta(theta_e).value
     mu_p = vp(x_m, m_dot, m, theta_e).value
-    
-    factor1 = P_synch/(0.71*(1-alpha_c))
-    factor2 = 6.2e19*(T_e / 1e9)
+
+    factor1 = P_synch / (0.71 * (1 - alpha_c))
+    factor2 = 6.2e19 * (T_e / 1e9)
     factor3 = mu_p
-    
-    return factor1*(np.power(factor2/factor3, 1-alpha_c)-1)
+
+    return factor1 * (np.power(factor2 / factor3, 1 - alpha_c) - 1)
 
 
 def P_bremms(
-        theta_e,
-        alpha = ALPHA,
-        c_1 = C_1,
-        r_max = R_MAX,
-        r_min = R_MIN,
+    theta_e,
+    alpha=ALPHA,
+    c_1=C_1,
+    r_max=R_MAX,
+    r_min=R_MIN,
 ):
-    
     F_calc = F_total
     calc = (
         4.78e34
         * np.power(alpha, -2)
         * np.power(c_1, -2)
-        * np.log(r_max/r_min)
-        * m 
+        * np.log(r_max / r_min)
+        * m
         * np.power(m_dot, 2)
         * F_calc
     )
-    
+
     return calc * u.Unit("erg s-1")
 
 
 def P_total(theta_e, x_m, m, m_dot):
-    
     P_synchroton = P_synch(theta_e, x_m, m, m_dot)
-    
-    Total_P = P_synch(theta_e, x_m, m, m_dot) + P_compton(P_synchroton, alpha_c, theta_e) + P_bremms(theta_e)
+
+    Total_P = (
+        P_synch(theta_e, x_m, m, m_dot)
+        + P_compton(P_synchroton, alpha_c, theta_e)
+        + P_bremms(theta_e)
+    )
     return Total_P
+
 
 ## main code begins here
 
@@ -362,26 +371,26 @@ ref_m_dot2 = [
     -5.457739791073123,
     -5.698874733465927,
     -5.879741618735328,
-    -6.020785178017882
+    -6.020785178017882,
 ]
 
 ref_x_m = [
-1364.0502461334681,
-1038.5866307928857,
-778.8933505501925,
-606.6748515313063,
-494.4988229572563,
-444.7599003416358,
-444.7599003416358,
-397.0063385704089,
-357.07364988578627,
-304.57787045619534,
-252.04884210522764,
-203.89446234923574,
-168.7297999352975,
-135.46402331036538,
-114.67690613367206,
-96.34727135733985
+    1364.0502461334681,
+    1038.5866307928857,
+    778.8933505501925,
+    606.6748515313063,
+    494.4988229572563,
+    444.7599003416358,
+    444.7599003416358,
+    397.0063385704089,
+    357.07364988578627,
+    304.57787045619534,
+    252.04884210522764,
+    203.89446234923574,
+    168.7297999352975,
+    135.46402331036538,
+    114.67690613367206,
+    96.34727135733985,
 ]
 
 
@@ -421,7 +430,6 @@ ref_x_m = [
 # # print(one_minus_alpha_c(theta_e, x_m, m, m_dot))
 # minus_alpha_c = one_minus_alpha_c(theta_e, x_m, m, m_dot)
 # logm_dot = np.logspace(-1.5,-8,100)
-
 
 
 # plt.plot(logm_dot, minus_alpha_c)
@@ -466,7 +474,7 @@ alpha_c = alpha_c(theta_e, m_dot)
 
 g = g(theta_e)
 F_total = F_theta(theta_e)
-#v_p = vp(x_m, m_dot, m, theta_e)
+# v_p = vp(x_m, m_dot, m, theta_e)
 
 # P_synch_values = P_synch(theta_e, x_m, m, m_dot)
 # P_compton_values = P_compton(P_synch_values, alpha_c, theta_e)
@@ -490,9 +498,9 @@ print(one_values)
 
 
 plt.plot(np.log10(m_dot), one_values)
-plt.xlabel('log($\dot{m}$)')
-plt.ylabel('1-alphac')
-plt.title('Temperatures equilibri massa 4')
+plt.xlabel("log($\dot{m}$)")
+plt.ylabel("1-alphac")
+plt.title("Temperatures equilibri massa 4")
 plt.xlim([0, -8])
 plt.show()
 
@@ -514,7 +522,7 @@ alpha_values = []
 for _m_dot in m_dot:
     print(f"solving equilibrium equation for m_dot = {_m_dot:.2e}")
     # fine loop on temperatures
-    
+
     _x_m = x_m_appendix_B(_m_dot)
     v_p = vp(_x_m, _m_dot, m, theta_e)
     _alpha_c = alpha_c(theta_e, _m_dot)
@@ -528,7 +536,7 @@ for _m_dot in m_dot:
     equilibrium_idx = np.argmin(equilibrium)
     print(f"-> equilibrium temperature: {T_e[equilibrium_idx]:.2e}")
     T_eq_values.append(T_e[equilibrium_idx].value)
-    #x_m_values.append(x_m[equilibrium_idx])
+    # x_m_values.append(x_m[equilibrium_idx])
 
 
 fig, ax = plt.subplots()
