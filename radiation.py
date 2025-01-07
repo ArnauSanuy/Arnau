@@ -1,6 +1,6 @@
 import numpy as np
 import astropy.units as u
-from astropy.constants import k_B, m_e, c
+from astropy.constants import k_B, m_e, c, h
 from scipy.special import kn
 
 
@@ -277,7 +277,7 @@ def compute_T_e_equilibirum(m, m_dot):
     """Solve numerically the equation for the equilibrium temperature.
     Equals the electron heating rate with the radiated power."""
 
-    T_e = np.logspace(8, 10, 300) * u.K
+    T_e = np.logspace(9, 10.5, 300) * u.K
     theta_e = theta_from_T(T_e)
     _x_m = x_m_appendix_B(m_dot)
     _alpha_c = alpha_c(theta_e, m_dot)
@@ -289,3 +289,95 @@ def compute_T_e_equilibirum(m, m_dot):
     equilibrium_idx = np.argmin(equilibrium)
 
     return T_e[equilibrium_idx].value
+
+
+def L_synch(
+    m,
+    m_dot,
+    x_m,
+    T_values,
+    v,
+    alpha=ALPHA,
+    c_1=C_1,
+    c_3=C_3,
+    beta=BETA
+):
+
+    #mu_p = vp(x_m, m_dot, m, theta_from_T(T_values * u.K)).value
+    #v = np.logspace(8, np.log10(mu_p[49]), 50)
+    
+    calc = (
+    1.05e-24
+    * np.power(1.6898e-4*np.sqrt(((1 - beta)*c_3)/(alpha*c_1))*x_m, 8/5)
+    * np.power(m, 6/5)
+    * np.power(m_dot, 4/5)
+    * np.power(v, 2/5)
+    * np.power(T_values, 21/5)        
+    )
+    
+    return calc
+
+
+def L_compton(
+    alpha_c,
+    m,
+    m_dot,
+    x_m,
+    T_values,
+    v,
+    mu_p,
+    alpha=ALPHA,
+    c_1=C_1,
+    c_3=C_3,
+    beta=BETA
+):
+    # mu_p = vp(x_m, m_dot, m, theta_from_T(T_values * u.K)).value
+    # v = np.logspace(mu_p[49], 16, 50)
+    _L_synch = L_synch(m, m_dot, x_m, T_values, mu_p, alpha, c_1, c_3, beta)
+    
+    
+    calc = (
+    np.power(mu_p, alpha_c)
+    * _L_synch
+    * np.power(v, -alpha_c)
+    )
+    
+    return calc
+    
+
+def L_bremms(
+    T_values,
+    m,
+    m_dot,
+    v,
+    alpha=ALPHA,
+    c_1=C_1,
+    r_min=R_MIN,
+    r_max=R_MAX,
+):
+    #v = np.logspace(16, 21, 50)
+    
+    F_calc = F_theta(theta_from_T(T_values * u.K))
+    calc = (
+    2.29e24
+    * np.power(alpha, -2)
+    * np.power(c_1, -2)
+    * np.log(r_max / r_min)
+    * F_calc
+    * np.power(T_values, -1)
+    * m
+    * np.power(m_dot, 2)
+    * np.exp(-((h*(v * u.Unit("s-1")))/(k_B*(T_values * u.K))))
+    )
+    
+    return calc
+    
+
+def Total_flux(m, m_dot, x_m, T_values, alpha_c, v, v1, v2, mu_p):
+    """This is just the sum of the three terms."""
+
+    return (
+        L_synch(m, m_dot, x_m, T_values, v1) * v1
+        + L_compton(alpha_c, m, m_dot, x_m, T_values, v2, mu_p) * v2
+        + L_bremms(T_values, m, m_dot, v2) * v2
+    ) * u.Unit("erg s-1")
