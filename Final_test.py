@@ -2,6 +2,7 @@ import numpy as np
 import astropy.units as u
 from radiation import *
 import matplotlib.pyplot as plt
+from statistics import mean, pvariance, pstdev
 
 ## main code begins here
 
@@ -91,75 +92,6 @@ ref_x_m = [
 ]
 
 
-# Test 1: test g(theta_e) implementation using Table 1
-# fig, ax = plt.subplots()
-# ax.plot(
-#     ref_theta_e,
-#     ref_g_theta_e,
-#     ls="",
-#     marker="o",
-#     label=r"$g(\theta_{e})$" + " reference",
-# )
-# ax.plot(
-#     ref_theta_e,
-#     g(ref_theta_e),
-#     ls="-",
-#     marker=".",
-#     label=r"$g(\theta_{e})$" + " implementation",
-# )
-# ax.set_xlabel(r"$\theta_{e}$")
-# ax.set_ylabel(r"$g(\theta_{e})$")
-# ax.legend()
-# plt.show()
-
-# Test 2: test Q_e_plus and P_synchn equilibrium
-# from Figure 2, it appears that for m = 10, m_dot = 10^{-2}
-# the equilibrium temperature is around 4 * 1e9 K
-T_e = np.linspace(1, 6, 100) * 1e9 * u.K
-theta_e = theta_from_T(T_e)
-m = 10
-m_dot = 1e-4
-x_m = x_m_appendix_B(m_dot)
-_alpha_c = alpha_c(theta_e, m_dot)
-_g = g(theta_e)
-v_p = vp(x_m, m_dot, m, theta_e)
-F_total = F_theta(theta_e)
-# print(one_minus_alpha_c(theta_e, x_m, m, m_dot))
-minus_alpha_c = one_minus_alpha_c(theta_e, x_m, m, m_dot)
-logm_dot = np.logspace(-1.5, -8, 100)
-
-# plt.plot(logm_dot, minus_alpha_c)
-# plt.xlabel('log($\dot{m}$)')
-# plt.ylabel('1-alphac')
-# plt.title('Temperatures equilibri massa 4')
-# plt.legend()
-# plt.show()
-# quit()
-
-# Q_e_plus_values = Q_e_plus(theta_e, m, m_dot)
-# P_synch_values = P_synch(theta_e, x_m, m, m_dot)
-# #print(P_synch_values)
-# P_compton_values = P_compton(P_synch_values, alpha_c, theta_e)
-# #print(P_compton_values)
-# P_bremms_values = P_bremms(theta_e)
-# #print(P_bremms_values)
-# P_total_values = P_total(theta_e, x_m, m, m_dot)
-# #print(P_total_values)
-
-
-# fig, ax = plt.subplots()
-# ax.semilogy(T_e, Q_e_plus_values, label=r"$Q^{e+}$")
-# ax.semilogy(T_e, P_synch_values, ls="--", label=r"$P_{\rm synch}$")
-# ax.set_xlabel(r"$T_{e}$")
-# ax.set_ylabel("Power / " + r"$({\rm erg}\,{\rm s}^{-1})$")
-# ax.legend()
-# plt.show()
-
-
-# the powers are equals at T ~ 2.3 * 1e9 K
-# but we only used synchrotron losses and the approximation in Appendix B for x_m
-
-
 # Test 3: try to reproduce Fig. 2 and Fig. 3 for the first mass
 # let us make a larger and finer array of temperatures
 
@@ -168,16 +100,52 @@ ref_m_dot = data_m_10[:, 0]
 ref_T_e = data_m_10[:, 1]
 
 m = 10
-T_e = np.logspace(9, 10, 300) * u.K
-theta_e = theta_from_T(T_e)
+# T_e = np.logspace(9, 10, 50) * u.K
+# theta_e = theta_from_T(T_e)
 m_dot = np.logspace(-8, 0, 50)
+_x_m = x_m_appendix_B(m_dot)
 
 T_eq_values = []
 
 for _m_dot in m_dot:
     T_eq_values.append(compute_T_e_equilibirum(m, _m_dot))
 
-print(T_eq_values)
+T_final_values = T_eq_values * u.K
+
+m_proof = 5e7
+P6 = np.linspace(1.5, 3, 50)
+T7 = np.linspace(0.2, 4, 50)
+
+new_m_dot = (
+    4.16e-5
+    *(10.6/5.17)
+    *np.power(32.2, 1/2)
+    *np.power(1/0.3, 1/3)
+    *np.power(4.3e-5, 1/6)
+    *np.power(0.5, 8/3)
+    *P6
+    *np.power(T7, -5/2))
+
+new_x_m = x_m_appendix_B(new_m_dot)
+new_alpha_c = alpha_c(theta_from_T(T_final_values), new_m_dot)
+mu_p = vp(new_x_m, new_m_dot, m_proof, theta_from_T(T_eq_values * u.K)).value
+mean = mean(mu_p)
+
+v1 = np.logspace(np.log10(mean), 8, 50)
+v2 = np.logspace(np.log10(mean),  21, 50)
+v = np.logspace(8, 21, 50)
+
+first_part = v1*L_synch(m_proof, new_m_dot, new_x_m, T_eq_values, v1)
+second_part = v2*L_compton(new_alpha_c, m_proof, new_m_dot, new_x_m, T_eq_values, v2, mean)
+third_part = v2*L_bremms(T_eq_values, m_proof, new_m_dot, v2)
+flux_2 = second_part + third_part
+united_list = [item for sublist in [flux_2, first_part] for item in sublist]
+v_list = [item for sublist in [v2, v1] for item in sublist]
+
+first_flux = Total_flux(m_proof, new_m_dot, new_x_m, T_eq_values, new_alpha_c, v, v1, v2, mu_p)
+
+calculus = np.log10(first_flux.value)
+
 fig, ax1 = plt.subplots()
 
 ax1.plot(ref_m_dot, ref_T_e, ls="--", label="reference")
@@ -190,6 +158,13 @@ ax1.set_ylim([0.8, 5.6])
 ax1.set_xlim([-8, 0])
 ax1.set_xlabel(r"$Log(\dot{m})$")
 ax1.set_ylabel(r"$T_e\,/\,(10^{9}\,{\rm K})$")
+plt.show()
+
+#plt.plot(np.log10(v_list), np.log10(united_list))
+plt.plot(np.log10(v1), np.log10(first_part))
+#plt.plot(np.log10(v2), np.log10(second_part))
+#plt.plot(np.log10(v2), np.log10(third_part))
+plt.plot(np.log10(v2), np.log10(second_part + third_part))
 plt.show()
 
 
@@ -217,58 +192,126 @@ plt.show()
 
 """
 
-_x_m = x_m_appendix_B(_m_dot)
-alpha_first_mass = one_minus_alpha_c(theta_e, x_m, m, np.power(10, m_dot))
+theta_e_final = theta_from_T(T_final_values)
+alpha_first_mass = one_minus_alpha_c(theta_e_final, _x_m, m, m_dot)
+
 
 # Test 3: try to reproduce Fig. 2 and Fig. 3 for the second mass
 # let us make a larger and finer array of temperatures
 
+data_m_1e5 = np.loadtxt("data/T_e_m_1e5.txt", delimiter=",")
+ref_m_dot = data_m_1e5[:, 0]
+ref_T_e = data_m_1e5[:, 1]
+
+
 m = 1e5
 
 T_eq_values_2 = []
-x_m_values_2 = []
-alpha_values_2 = []
-
-# for _m_dot in m_dot:
-#     info = alpha_c(theta_e, _m_dot)
-#     alpha_values.append(info)
-
-# print(type(alpha_values))
-
-# array = np.array(alpha_values)
-# alpha_c_list = array.tolist()
-# print(type(alpha_c_list))
 
 for _m_dot in m_dot:
-    # fine loop on temperatures
+    T_eq_values_2.append(compute_T_e_equilibirum(m, _m_dot))
 
-    _x_m = x_m_appendix_B(_m_dot)
-    v_p = vp(_x_m, _m_dot, m, theta_e)
-    _alpha_c = alpha_c(theta_e, _m_dot)
+T_final_values_2 = T_eq_values_2 * u.K
 
-    Q_e_plus_values = Q_e_plus(theta_e, m, _m_dot)
-    P_synch_values = P_synch(theta_e, _x_m, m, _m_dot)
-    P_compton_values = P_compton(P_synch_values, _alpha_c, theta_e, x_m, m_dot, m)
-    P_bremms_values = P_bremms(theta_e)
-    # P_total_values = P_total(theta_e, _x_m, m, _m_dot)
-    equilibrium = np.abs(
-        Q_e_plus_values - P_synch_values - P_compton_values - P_bremms_values
-    )
-    equilibrium_idx = np.argmin(equilibrium)
-    T_eq_values_2.append(T_e[equilibrium_idx].value)
-    x_m_values_2.append(x_m[equilibrium_idx])
+fig, ax1 = plt.subplots()
+ax1.plot(ref_m_dot, ref_T_e, ls="--", label="reference")
+ax1.plot(np.log10(m_dot), np.asarray(T_eq_values_2) / 1e9, label="implementation")
+# ax2 = ax1.twinx()
+# ax2.semilogy(ref_m_dot_x_m, ref_x_m, ls="--", label="reference")
+# ax2.semilogy(np.log10(m_dot), np.asarray(x_m_values_1), label="implementation")
+ax1.legend()
+ax1.set_ylim([0.8, 10])
+ax1.set_xlim([-8, 0])
+ax1.set_xlabel(r"$Log(\dot{m})$")
+ax1.set_ylabel(r"$T_e\,/\,(10^{9}\,{\rm K})$")
+plt.show()
+
+# fig, ax = plt.subplots()
+# ax.semilogy(np.log10(m_dot), np.asarray(x_m_values_2), label="implementation")
+# ax.set_xlabel(r"$Log(\dot{m})$")
+# ax.set_ylabel("x_m")
+# # ax.set_xlim([0, -8])
+# # ax.set_ylim([8e1, 2e3])
+# plt.show()
+
+
+theta_e_final = theta_from_T(T_final_values_2)
+alpha_second_mass = one_minus_alpha_c(theta_e_final, _x_m, m, m_dot)
+
+# Test 3: try to reproduce Fig. 2 and Fig. 3 for the third mass
+# let us make a larger and finer array of temperatures
+
+data_m_1e7 = np.loadtxt("data/T_e_1e7.txt", delimiter=",")
+ref_m_dot = data_m_1e7[:, 0]
+ref_T_e = data_m_1e7[:, 1]
+
+m = 1e7
+
+T_eq_values_3 = []
+
+for _m_dot in m_dot:
+    T_eq_values_3.append(compute_T_e_equilibirum(m, _m_dot))
+
+T_final_values_3 = T_eq_values_3 * u.K
 
 
 fig, ax1 = plt.subplots()
-ax1.plot(np.log10(m_dot), np.asarray(T_eq_values_2) / 1e9, label="implementation")
-ax2 = ax1.twinx()
-ax2.semilogy(np.log10(m_dot), np.asarray(x_m_values_2), label="implementation")
+ax1.plot(ref_m_dot, ref_T_e, ls="--", label="reference")
+ax1.plot(np.log10(m_dot), np.asarray(T_eq_values_3) / 1e9, label="implementation")
+# ax2 = ax1.twinx()
+# ax2.semilogy(ref_m_dot_x_m, ref_x_m, ls="--", label="reference")
+# ax2.semilogy(np.log10(m_dot), np.asarray(x_m_values_1), label="implementation")
+ax1.legend()
+ax1.set_ylim([0.8, 10])
+ax1.set_xlim([-8, 0])
 ax1.set_xlabel(r"$Log(\dot{m})$")
 ax1.set_ylabel(r"$T_e\,/\,(10^{9}\,{\rm K})$")
-ax2.set_ylabel("x_m")
-ax1.set_xlim([0, -8])
-# ax.set_ylim([0, 6])
 plt.show()
+
+
+
+# fig, ax = plt.subplots()
+# ax.semilogy(np.log10(m_dot), np.asarray(x_m_values_2), label="implementation")
+# ax.set_xlabel(r"$Log(\dot{m})$")
+# ax.set_ylabel("x_m")
+# # ax.set_xlim([0, -8])
+# # ax.set_ylim([8e1, 2e3])
+# plt.show()
+
+theta_e_final = theta_from_T(T_final_values_3)
+alpha_third_mass = one_minus_alpha_c(theta_e_final, _x_m, m, m_dot)
+
+
+# Test 3: try to reproduce Fig. 2 and Fig. 3 for the fourth mass
+# let us make a larger and finer array of temperatures
+
+
+data_m_1e9 = np.loadtxt("data/T_e_1e9.txt", delimiter=",")
+ref_m_dot = data_m_1e9[:, 0]
+ref_T_e = data_m_1e9[:, 1]
+
+m = 1e9
+
+T_eq_values_4 = []
+
+for _m_dot in m_dot:
+    T_eq_values_4.append(compute_T_e_equilibirum(m, _m_dot))
+
+T_final_values_4 = T_eq_values_4 * u.K
+
+fig, ax1 = plt.subplots()
+ax1.plot(ref_m_dot, ref_T_e, ls="--", label="reference")
+ax1.plot(np.log10(m_dot), np.asarray(T_eq_values_4) / 1e9, label="implementation")
+# ax2 = ax1.twinx()
+# ax2.semilogy(ref_m_dot_x_m, ref_x_m, ls="--", label="reference")
+# ax2.semilogy(np.log10(m_dot), np.asarray(x_m_values_1), label="implementation")
+ax1.legend()
+ax1.set_ylim([0.8, 12])
+ax1.set_xlim([-8, 0])
+ax1.set_xlabel(r"$Log(\dot{m})$")
+ax1.set_ylabel(r"$T_e\,/\,(10^{9}\,{\rm K})$")
+plt.show()
+
 
 
 # fig, ax = plt.subplots()
@@ -280,154 +323,15 @@ plt.show()
 # plt.show()
 
 
-new_x_m_2 = np.array(x_m_values_2)
-
-alpha_second_mass = one_minus_alpha_c(theta_e, new_x_m_2, m, np.power(10, m_dot))
-
-
-# Test 3: try to reproduce Fig. 2 and Fig. 3 for the third mass
-# let us make a larger and finer array of temperatures
+theta_e_final = theta_from_T(T_final_values_4)
+alpha_fourth_mass = one_minus_alpha_c(theta_e_final, _x_m, m, m_dot)
 
 
-m = 1e7
-
-T_eq_values_3 = []
-x_m_values_3 = []
-alpha_values_3 = []
-
-# for _m_dot in m_dot:
-#     info = alpha_c(theta_e, _m_dot)
-#     alpha_values.append(info)
-
-# print(type(alpha_values))
-
-# array = np.array(alpha_values)
-# alpha_c_list = array.tolist()
-# print(type(alpha_c_list))
-
-for _m_dot in m_dot:
-    # fine loop on temperatures
-
-    _x_m = x_m_appendix_B(_m_dot)
-    v_p = vp(_x_m, _m_dot, m, theta_e)
-    _alpha_c = alpha_c(theta_e, _m_dot)
-
-    Q_e_plus_values = Q_e_plus(theta_e, m, _m_dot)
-    P_synch_values = P_synch(theta_e, _x_m, m, _m_dot)
-    P_compton_values = P_compton(P_synch_values, _alpha_c, theta_e, x_m, m_dot, m)
-    P_bremms_values = P_bremms(theta_e)
-    # P_total_values = P_total(theta_e, _x_m, m, _m_dot)
-    equilibrium = np.abs(
-        Q_e_plus_values - P_synch_values - P_compton_values - P_bremms_values
-    )
-    equilibrium_idx = np.argmin(equilibrium)
-    T_eq_values_3.append(T_e[equilibrium_idx].value)
-    x_m_values_3.append(x_m[equilibrium_idx])
-
-
-fig, ax1 = plt.subplots()
-ax1.plot(np.log10(m_dot), np.asarray(T_eq_values_3) / 1e9, label="implementation")
-ax2 = ax1.twinx()
-ax2.semilogy(np.log10(m_dot), np.asarray(x_m_values_3), label="implementation")
-ax1.set_xlabel(r"$Log(\dot{m})$")
-ax1.set_ylabel(r"$T_e\,/\,(10^{9}\,{\rm K})$")
-ax2.set_ylabel("x_m")
-ax1.set_xlim([0, -8])
-# ax.set_ylim([0, 6])
-plt.show()
-
-
-# fig, ax = plt.subplots()
-# ax.semilogy(np.log10(m_dot), np.asarray(x_m_values_3), label="implementation")
-# ax.set_xlabel(r"$Log(\dot{m})$")
-# ax.set_ylabel("x_m")
-# # ax.set_xlim([0, -8])
-# # ax.set_ylim([8e1, 2e3])
-# plt.show()
-
-
-new_x_m_3 = np.array(x_m_values_3)
-
-alpha_third_mass = one_minus_alpha_c(theta_e, new_x_m_3, m, np.power(10, m_dot))
-
-
-# Test 3: try to reproduce Fig. 2 and Fig. 3 for the fourth mass
-# let us make a larger and finer array of temperatures
-
-
-m = 1e9
-
-T_eq_values_4 = []
-x_m_values_4 = []
-alpha_values_4 = []
-
-# for _m_dot in m_dot:
-#     info = alpha_c(theta_e, _m_dot)
-#     alpha_values.append(info)
-
-# print(type(alpha_values))
-
-# array = np.array(alpha_values)
-# alpha_c_list = array.tolist()
-# print(type(alpha_c_list))
-
-for _m_dot in m_dot:
-    # fine loop on temperatures
-
-    _x_m = x_m_appendix_B(_m_dot)
-    v_p = vp(_x_m, _m_dot, m, theta_e)
-    _alpha_c = alpha_c(theta_e, _m_dot)
-
-    Q_e_plus_values = Q_e_plus(theta_e, m, _m_dot)
-    P_synch_values = P_synch(theta_e, _x_m, m, _m_dot)
-    P_compton_values = P_compton(P_synch_values, _alpha_c, theta_e, x_m, m_dot, m)
-    P_bremms_values = P_bremms(theta_e)
-    # P_total_values = P_total(theta_e, _x_m, m, _m_dot)
-    equilibrium = np.abs(
-        Q_e_plus_values - P_synch_values - P_compton_values - P_bremms_values
-    )
-    equilibrium_idx = np.argmin(equilibrium)
-    T_eq_values_4.append(T_e[equilibrium_idx].value)
-    x_m_values_4.append(x_m[equilibrium_idx])
-
-
-fig, ax1 = plt.subplots()
-ax1.plot(np.log10(m_dot), np.asarray(T_eq_values_4) / 1e9, label="implementation")
-ax2 = ax1.twinx()
-ax2.semilogy(np.log10(m_dot), np.asarray(x_m_values_4), label="implementation")
-ax1.set_xlabel(r"$Log(\dot{m})$")
-ax1.set_ylabel(r"$T_e\,/\,(10^{9}\,{\rm K})$")
-ax2.set_ylabel("x_m")
-ax1.set_xlim([0, -8])
-# ax.set_ylim([0, 6])
-plt.show()
-
-
-# fig, ax = plt.subplots()
-# ax.semilogy(np.log10(m_dot), np.asarray(x_m_values_4), label="implementation")
-# ax.set_xlabel(r"$Log(\dot{m})$")
-# ax.set_ylabel("x_m")
-# # ax.set_xlim([0, -8])
-# # ax.set_ylim([8e1, 2e3])
-# plt.show()
-
-
-new_x_m_4 = np.array(x_m_values_4)
-
-alpha_fourth_mass = one_minus_alpha_c(theta_e, new_x_m_4, m, np.power(10, m_dot))
-
-plt.plot(np.log10(m_dot), alpha_first_mass, label="$m=10$")
-plt.plot(np.log10(m_dot), alpha_second_mass, label="$m=10^5$")
-plt.plot(np.log10(m_dot), alpha_third_mass, label="$m=10^7$")
-plt.plot(np.log10(m_dot), alpha_fourth_mass, label="$m=10^9$")
-plt.xlabel("log($\dot{m}$)")
-plt.ylabel("1-alphac")
+plt.plot(np.log10(m_dot), alpha_first_mass, label = 1)
+plt.plot(np.log10(m_dot), alpha_second_mass, label = 2)
+plt.plot(np.log10(m_dot), alpha_third_mass, label = 3)
+plt.plot(np.log10(m_dot), alpha_fourth_mass, label = 4)
+plt.xlabel(r"$Log(\dot{m})$")
+plt.ylabel(r"$T_e\,/\,(10^{9}\,{\rm K})$")
 plt.legend()
-plt.title("Temperatures equilibri massa 4")
 plt.show()
-
-
-# print(alpha_first_mass)
-# print(alpha_second_mass)
-# print(alpha_third_mass)
-# print(alpha_fourth_mass)
