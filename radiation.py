@@ -16,6 +16,9 @@ R_MAX = 1e3
 mec2 = m_e * c**2
 F_total = []
 
+P6 = np.linspace(1.5, 3, 50)
+T7 = np.linspace(0.2, 4, 50)
+
 
 def T_from_theta(theta_e):
     return (theta_e * mec2 / k_B).to("K")
@@ -290,6 +293,18 @@ def compute_T_e_equilibirum(m, m_dot):
 
     return T_e[equilibrium_idx].value
 
+def new_m_dot(P6, T7):
+    calc = (
+    4.16e-5
+    *(10.6/5.17)
+    *np.power(32.2, 1/2)
+    *np.power(1/0.3, 1/3)
+    *np.power(4.3e-5, 1/6)
+    *np.power(0.5, 8/3)
+    *P6
+    *np.power(T7, -5/2))
+    
+    return calc
 
 def L_synch(
     m,
@@ -370,14 +385,14 @@ def L_bremms(
     * np.exp(-((h*(v * u.Unit("s-1")))/(k_B*(T_values * u.K))))
     )
     
-    return calc
+    return calc.value
     
 
 def Total_flux(m, m_dot, x_m, T_values, alpha_c, v, v1, v2, mu_p):
     """This is just the sum of the three terms."""
+    
+    first_part_flux = (L_synch(m, m_dot, x_m, T_values, v1) * v1)
+    second_part_flux  = (L_compton(alpha_c, m, m_dot, x_m, T_values, v2, mu_p) 
+                         + L_bremms(T_values, m, m_dot, v2)) * v2
 
-    return (
-        L_synch(m, m_dot, x_m, T_values, v1) * v1
-        + L_compton(alpha_c, m, m_dot, x_m, T_values, v2, mu_p) * v2
-        + L_bremms(T_values, m, m_dot, v2) * v2
-    ) * u.Unit("erg s-1")
+    return first_part_flux.tolist(), second_part_flux.tolist()
