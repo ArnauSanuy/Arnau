@@ -2,7 +2,8 @@ import numpy as np
 import astropy.units as u
 from astropy.constants import k_B, m_e, c, h
 from scipy.special import kn
-
+import matplotlib.pyplot as plt
+from statistics import mean, pvariance, pstdev
 
 # constant values
 ALPHA = 0.3
@@ -15,9 +16,16 @@ R_MIN = 3.0
 R_MAX = 1e3
 mec2 = m_e * c**2
 F_total = []
+alpha_b = 0.5
 
-P6 = np.linspace(1.5, 3, 50)
-T7 = np.linspace(0.2, 4, 50)
+P6 = 1
+T7 = 1
+a = 1
+v = np.logspace(8,21)
+
+
+# P6 = np.linspace(0.8, 1.2, 50)
+# T7 = np.linspace(0.5, 4, 50)
 
 
 def T_from_theta(theta_e):
@@ -276,6 +284,7 @@ def P_total(theta_e, x_m, m, m_dot, alpha_c):
         + P_bremms(theta_e, m, m_dot)
     )
 
+
 def compute_T_e_equilibirum(m, m_dot):
     """Solve numerically the equation for the equilibrium temperature.
     Equals the electron heating rate with the radiated power."""
@@ -293,85 +302,90 @@ def compute_T_e_equilibirum(m, m_dot):
 
     return T_e[equilibrium_idx].value
 
-def new_m_dot(P6, T7):
+
+def new_m_dot(m, P6, T7):
     calc = (
     4.16e-5
     *(10.6/5.17)
-    *np.power(32.2, 1/2)
-    *np.power(1/0.3, 1/3)
-    *np.power(4.3e-5, 1/6)
-    *np.power(0.5, 8/3)
+    *np.power(0.5, 2)
+    *(m/1e8)
     *P6
     *np.power(T7, -5/2))
     
     return calc
 
+
+def new_m_dot_1(m, T7, Lx, a, alpha_b):
+    calc = (
+    4.16e-5
+    *np.power(alpha_b, 2)
+    *np.power(T7, 1/4)
+    *(m/1e8)
+    *np.power(np.power(a*T7, 3), -1/2)
+    *np.power(Lx/1e41, 1/2)
+    )
+    return calc
+
 def L_synch(
+    nu,
     m,
     m_dot,
     x_m,
-    T_values,
-    v,
+    T,
     alpha=ALPHA,
     c_1=C_1,
     c_3=C_3,
     beta=BETA
 ):
-
-    #mu_p = vp(x_m, m_dot, m, theta_from_T(T_values * u.K)).value
-    #v = np.logspace(8, np.log10(mu_p[49]), 50)
-    
+    """Compute the synchrotron luminosity"""
     calc = (
     1.05e-24
     * np.power(1.6898e-4*np.sqrt(((1 - beta)*c_3)/(alpha*c_1))*x_m, 8/5)
     * np.power(m, 6/5)
     * np.power(m_dot, 4/5)
-    * np.power(v, 2/5)
-    * np.power(T_values, 21/5)        
+    * np.power(nu, 2/5)
+    * np.power(T, 21/5)
     )
     
     return calc
 
 
 def L_compton(
+    nu,
+    nu_p,
     alpha_c,
     m,
     m_dot,
     x_m,
-    T_values,
-    v,
-    mu_p,
+    T,
     alpha=ALPHA,
     c_1=C_1,
     c_3=C_3,
     beta=BETA
 ):
-    # mu_p = vp(x_m, m_dot, m, theta_from_T(T_values * u.K)).value
-    # v = np.logspace(mu_p[49], 16, 50)
-    _L_synch = L_synch(m, m_dot, x_m, T_values, mu_p, alpha, c_1, c_3, beta)
-    
-    
+    """Compute Inverse Compton luminosity"""
+    _L_synch = L_synch(nu_p, m, m_dot, x_m, T, alpha, c_1, c_3, beta)
+
     calc = (
-    np.power(mu_p, alpha_c)
-    * _L_synch
-    * np.power(v, -alpha_c)
+        np.power(nu_p, alpha_c)
+        * _L_synch
+        * np.power(nu, -alpha_c)
     )
-    
+
     return calc
-    
+
 
 def L_bremms(
+    nu,
     T_values,
     m,
     m_dot,
-    v,
     alpha=ALPHA,
     c_1=C_1,
     r_min=R_MIN,
     r_max=R_MAX,
 ):
-    #v = np.logspace(16, 21, 50)
-    
+    """Compute Bremms luminosity"""
     F_calc = F_theta(theta_from_T(T_values * u.K))
     calc = (
     2.29e24
@@ -382,17 +396,138 @@ def L_bremms(
     * np.power(T_values, -1)
     * m
     * np.power(m_dot, 2)
-    * np.exp(-((h*(v * u.Unit("s-1")))/(k_B*(T_values * u.K))))
+    * np.exp(-((h*(nu * u.Unit("s-1")))/(k_B*(T_values * u.K))))
     )
-    
+
     return calc.value
-    
+
 
 def Total_flux(m, m_dot, x_m, T_values, alpha_c, v, v1, v2, mu_p):
     """This is just the sum of the three terms."""
-    
+
     first_part_flux = (L_synch(m, m_dot, x_m, T_values, v1) * v1)
     second_part_flux  = (L_compton(alpha_c, m, m_dot, x_m, T_values, v2, mu_p) 
                          + L_bremms(T_values, m, m_dot, v2)) * v2
 
     return first_part_flux.tolist(), second_part_flux.tolist()
+
+
+def Fig_temperatures_1(m_dot, T_values, ref_m_dot, ref_T_e, ax=None):
+    if ax is None:
+        ax = plt.gca()
+    
+    ax.plot(ref_m_dot, ref_T_e, ls="--", label="reference")
+    ax.plot(np.log10(m_dot), np.asarray(T_values) / 1e9, label="implementation")
+    ax.legend()
+    ax.set_ylim([0.8, 5.6])
+    ax.set_xlim([-8, 0])
+    ax.set_xlabel(r"$Log(\dot{m})$")
+    ax.set_ylabel(r"$T_e\,/\,(10^{9}\,{\rm K})$")
+    plt.show()
+    
+    return ax
+
+
+def Fig_temperatures_2(m_dot, T_values, ref_m_dot, ref_T_e, ax=None):
+    if ax is None:
+        ax = plt.gca()
+    
+
+    ax.plot(ref_m_dot, ref_T_e, ls="--", label="reference")
+    ax.plot(np.log10(m_dot), np.asarray(T_values) / 1e9, label="implementation")
+    ax.legend()
+    ax.set_ylim([0.8, 10])
+    ax.set_xlim([-8, 0])
+    ax.set_xlabel(r"$Log(\dot{m})$")
+    ax.set_ylabel(r"$T_e\,/\,(10^{9}\,{\rm K})$")
+    plt.show()
+    
+    return ax
+
+
+def Fig_temperatures_3(m_dot, T_values, ref_m_dot, ref_T_e, ax=None):
+    
+    if ax is None:
+        ax = plt.gca()
+
+    ax.plot(ref_m_dot, ref_T_e, ls="--", label="reference")
+    ax.plot(np.log10(m_dot), np.asarray(T_values) / 1e9, label="implementation")
+    ax.legend()
+    ax.set_ylim([0.8, 12])
+    ax.set_xlim([-8, 0])
+    ax.set_xlabel(r"$Log(\dot{m})$")
+    ax.set_ylabel(r"$T_e\,/\,(10^{9}\,{\rm K})$")
+    plt.show()
+    
+    return ax
+
+
+def Figure_initial_flux(m, m_dot, ref_m_dot, ref_T_e, ax=None, color='b'):
+    
+    x_m = x_m_appendix_B(m_dot)
+    T_calc = compute_T_e_equilibirum(m, m_dot)
+    alpha = alpha_c(theta_from_T(T_calc * u.K), m_dot)
+    mu_p = vp(x_m, m_dot, m, theta_from_T(T_calc * u.K)).value
+    v_first = np.logspace(np.log10(mu_p), 8, 50)
+    v_second = np.logspace(np.log10(mu_p),  21, 50)
+    v_total = np.logspace(8, 21, 50)
+    
+    flux  = Total_flux(m, m_dot, x_m, T_calc, alpha, v_total, v_first, v_second, mu_p)
+
+    if ax is None:
+        fig, ax = plt.subplots(figsize=(8, 6))
+        
+    ax.plot(ref_m_dot, ref_T_e, ls="--", color= color, label="reference")
+    ax.plot(np.log10(v_first), np.log10(flux[0]), color = 'r', label = "implementation ") 
+    ax.plot(np.log10(v_second), np.log10(flux[1]), color = 'r')
+    ax.set_xlabel(r"$\log(\nu \, \mathrm{Hz})$")
+    ax.set_ylabel(r"$\log(\nu L_{\nu} \, \mathrm{ergs} \, \mathrm{s}^{-1})$")
+    ax.legend()
+
+    return ax
+
+def Figure_initial_flux_woref(m, m_dot, ax=None, color='b', label = 'label'):
+    
+    x_m = x_m_appendix_B(m_dot)
+    T_calc = compute_T_e_equilibirum(m, m_dot)
+    alpha = alpha_c(theta_from_T(T_calc * u.K), m_dot)
+    mu_p = vp(x_m, m_dot, m, theta_from_T(T_calc * u.K)).value
+    v_first = np.logspace(np.log10(mu_p), 8, 50)
+    v_second = np.logspace(np.log10(mu_p),  21, 50)
+    v_total = np.logspace(8, 21, 50)
+    
+    flux  = Total_flux(m, m_dot, x_m, T_calc, alpha, v_total, v_first, v_second, mu_p)
+
+    if ax is None:
+        fig, ax = plt.subplots(figsize=(8, 6))
+        
+    ax.plot(np.log10(v_first), np.log10(flux[0]), color = color) 
+    ax.plot(np.log10(v_second), np.log10(flux[1]), color = color, label=label)
+    ax.set_xlabel(r"$\log(\nu \, \mathrm{Hz})$")
+    ax.set_ylabel(r"$\log(\nu L_{\nu} \, \mathrm{ergs} \, \mathrm{s}^{-1})$")
+    ax.legend()
+
+    return ax
+
+
+def final_flux(nu, m, m_dot):
+    """Compute the total flux"""
+    T_calc = compute_T_e_equilibirum(m, m_dot)
+
+    new_x_m = x_m_appendix_B(m_dot)
+    new_alpha_c = alpha_c(theta_from_T(T_calc * u.K), m_dot)
+    mu_p = vp(new_x_m, m_dot, m, theta_from_T(T_calc * u.K)).value
+    #mean_variable = mean(mu_p)
+
+    v1 = np.logspace(np.log10(mu_p), 8, 50)
+    v2 = np.logspace(np.log10(mu_p),  21, 50)
+
+    flux = Total_flux(m, m_dot, new_x_m, T_calc, new_alpha_c, nu, v1, v2, mu_p)
+    calculus = np.log10(flux)
+
+    return v1, v2, calculus
+
+
+
+
+
