@@ -527,7 +527,16 @@ def final_flux(nu, m, m_dot):
 
     return v1, v2, calculus
 
-
+def L_b(alpha_b, m, T, a, L_x):
+    luminosity = (
+        5.17e41
+        * np.power(alpha_b, 2)
+        * np.power(m, 2)
+        * np.power(T, 1/4)
+        * np.power(a*T, -3/2)
+        * np.power(L_x/(1e41), 1/2)
+    )
+    return luminosity
 
 
 
