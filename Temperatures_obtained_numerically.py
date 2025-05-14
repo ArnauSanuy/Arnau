@@ -2,7 +2,6 @@ import numpy as np
 import astropy.units as u
 from radiation import *
 import matplotlib.pyplot as plt
-from statistics import mean, pvariance, pstdev
 
 
 # Now, we are going to present the different plots of Fig. 2 from Rohan Mahadevan
@@ -26,8 +25,13 @@ for _m_dot in m_dot:
 
 T_final_values = T_eq_values * u.K
 
-Figure_1 = Fig_temperatures_1(m_dot, T_eq_values, ref_m_dot_1, ref_T_e_1)
-
+fig, ax = plt.subplots()
+#Fig_temperatures_1(m_dot, T_eq_values, ref_m_dot_1, ref_T_e_1, ax=None)
+Fig_temperatures_1(m_dot, T_eq_values, ref_m_dot_1, ref_T_e_1, ax=ax)
+ax.set_title(r"$M = 10\,M_\odot$")
+plt.tight_layout()
+#plt.savefig("First_plot_temperature.png", dpi=300, bbox_inches='tight')
+plt.show()
 # ---------------------------------------------------------
 # The second mass we analyse is m=1e5, where there is the reference and the implementation
 
@@ -44,9 +48,12 @@ for _m_dot in m_dot:
 
 T_final_values_2 = T_eq_values_2 * u.K
 
-
-Figure_2 = Fig_temperatures_2(m_dot, T_eq_values_2, ref_m_dot_2, ref_T_e_2)
-
+fig, ax = plt.subplots()
+Figure_2 = Fig_temperatures_2(m_dot, T_eq_values_2, ref_m_dot_2, ref_T_e_2, ax=ax)
+ax.set_title(r"$M = 10^5 M_\odot$")
+plt.tight_layout()
+#plt.savefig("Second_plot_temperature.png", dpi=300, bbox_inches='tight')
+plt.show()
 # ---------------------------------------------
 # The third mass we analyse is m=1e7, where there is the reference and the implementation
 
@@ -63,9 +70,12 @@ for _m_dot in m_dot:
 
 T_final_values_3 = T_eq_values_3 * u.K
 
-
-Figure_3 = Fig_temperatures_2(m_dot, T_eq_values_3, ref_m_dot_3, ref_T_e_3)
-
+fig, ax = plt.subplots()
+Figure_3 = Fig_temperatures_2(m_dot, T_eq_values_3, ref_m_dot_3, ref_T_e_3, ax=ax)
+ax.set_title(r"$M = 10^7 M_\odot$")
+plt.tight_layout()
+#plt.savefig("Third_plot_temperature.png", dpi=300, bbox_inches='tight')
+plt.show()
 # --------------------------------------------
 # The fourth mass we analyse is m=1e9, where there is the reference and the implementation
 
@@ -82,8 +92,13 @@ for _m_dot in m_dot:
 
 T_final_values_4 = T_eq_values_4 * u.K
 
-Figure_4 = Fig_temperatures_3(m_dot, T_eq_values_4, ref_m_dot_4, ref_T_e_4)
 
+fig, ax = plt.subplots()
+Figure_4 = Fig_temperatures_3(m_dot, T_eq_values_4, ref_m_dot_4, ref_T_e_4, ax=ax)
+ax.set_title(r"$M = 10^9 M_\odot$")
+plt.tight_layout()
+#plt.savefig("Fourth_plot_temperature.png", dpi=300, bbox_inches='tight')
+plt.show()
 # ------------------------------------------------
 # Now, we present the Fig. 3 of Rohan Mahadevan paper of 1997.
 # The plots are similar to the ones presented in the paper, but the due to
@@ -92,16 +107,27 @@ Figure_4 = Fig_temperatures_3(m_dot, T_eq_values_4, ref_m_dot_4, ref_T_e_4)
 
 
 fig, axs = plt.subplots(2, 2, figsize=(10, 8))
-fig.subplots_adjust(hspace=0.3, wspace=0.3)  
+fig.subplots_adjust(hspace=0.4, wspace=0.4)  
+mass_labels = [r"$M = 10 M_\odot$", r"$M = 10^5 M_\odot$", r"$M = 10^7 M_\odot$", r"$M = 10^9 M_\odot$"]
 
 ax1 = axs[0, 0]
+axs[0, 0].set_title(mass_labels[0])
 Fig_temperatures_1(m_dot, T_eq_values, ref_m_dot_1, ref_T_e_1, ax=ax1)
 ax2 = axs[0, 1]
+axs[0, 1].set_title(mass_labels[1])
 Fig_temperatures_2(m_dot, T_eq_values_2, ref_m_dot_2, ref_T_e_2, ax=ax2)
 ax3 = axs[1, 0]
+axs[1, 0].set_title(mass_labels[2])
 Fig_temperatures_2(m_dot, T_eq_values_3, ref_m_dot_3, ref_T_e_3, ax=ax3)
 ax4 = axs[1, 1]
+axs[1, 1].set_title(mass_labels[3])
 Fig_temperatures_3(m_dot, T_eq_values_4, ref_m_dot_4, ref_T_e_4, ax=ax4)
+plt.suptitle(
+    "Comparison of the equilibrium temperature\n"
+    "between the numerically obtained and the ones from (Mahadevan 1997)",
+    fontsize=10
+)
+#plt.savefig("Total_plot_temperature.png", dpi=300, bbox_inches='tight')
 plt.show()
 
 
@@ -122,5 +148,3 @@ plt.xlabel(r"$log(\dot{m})$")
 plt.ylabel(r"$1-\alpha_c$")
 plt.legend()
 plt.show()
-
-
