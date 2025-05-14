@@ -411,10 +411,13 @@ def Total_flux(m, m_dot, x_m, T_values, alpha_c, v, v1, v2, mu_p):
 
     return first_part_flux.tolist(), second_part_flux.tolist()
 
-
 def Fig_temperatures_1(m_dot, T_values, ref_m_dot, ref_T_e, ax=None):
+    
+    created_ax = False
     if ax is None:
-        ax = plt.gca()
+        fig, ax = plt.subplots()
+        created_ax = True
+    
     
     ax.plot(ref_m_dot, ref_T_e, ls="--", label="reference")
     ax.plot(np.log10(m_dot), np.asarray(T_values) / 1e9, label="implementation")
@@ -423,14 +426,17 @@ def Fig_temperatures_1(m_dot, T_values, ref_m_dot, ref_T_e, ax=None):
     ax.set_xlim([-8, 0])
     ax.set_xlabel(r"$Log(\dot{m})$")
     ax.set_ylabel(r"$T_e\,/\,(10^{9}\,{\rm K})$")
-    plt.show()
+    if created_ax:
+        plt.show()
     
     return ax
 
 
 def Fig_temperatures_2(m_dot, T_values, ref_m_dot, ref_T_e, ax=None):
+    created_ax = False
     if ax is None:
-        ax = plt.gca()
+        fig, ax = plt.subplots()
+        created_ax = True
     
 
     ax.plot(ref_m_dot, ref_T_e, ls="--", label="reference")
@@ -440,15 +446,17 @@ def Fig_temperatures_2(m_dot, T_values, ref_m_dot, ref_T_e, ax=None):
     ax.set_xlim([-8, 0])
     ax.set_xlabel(r"$Log(\dot{m})$")
     ax.set_ylabel(r"$T_e\,/\,(10^{9}\,{\rm K})$")
-    plt.show()
+    if created_ax:
+        plt.show()
     
     return ax
 
 
 def Fig_temperatures_3(m_dot, T_values, ref_m_dot, ref_T_e, ax=None):
-    
+    created_ax = False
     if ax is None:
-        ax = plt.gca()
+        fig, ax = plt.subplots()
+        created_ax = True
 
     ax.plot(ref_m_dot, ref_T_e, ls="--", label="reference")
     ax.plot(np.log10(m_dot), np.asarray(T_values) / 1e9, label="implementation")
@@ -457,9 +465,11 @@ def Fig_temperatures_3(m_dot, T_values, ref_m_dot, ref_T_e, ax=None):
     ax.set_xlim([-8, 0])
     ax.set_xlabel(r"$Log(\dot{m})$")
     ax.set_ylabel(r"$T_e\,/\,(10^{9}\,{\rm K})$")
-    plt.show()
+    if created_ax:
+        plt.show()
     
     return ax
+
 
 
 def Figure_initial_flux(m, m_dot, ref_m_dot, ref_T_e, ax=None, color='b'):
