@@ -1,1 +1,1 @@
-# De moment és una pàgina en blanc per tal de després poder escriure una descripció del codi
+# Here, the reader can find all the documents (software) needed to understand the TFG Modelling of multi-wavelength emission from miniature radio galaxies.
